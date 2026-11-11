@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: teen-city-survey
+    runtime: node
+    plan: starter
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_USERNAME
+        value: Administrator
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: survey-data
+      mountPath: /var/data
+      sizeGB: 1

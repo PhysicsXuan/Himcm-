@@ -1,0 +1,13 @@
+{
+  "name": "teen-city-survey",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Anonymous youth-friendly city survey with an admin history view",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
