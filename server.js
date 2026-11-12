@@ -1,12 +1,20 @@
 const http = require('node:http');
 const fs = require('node:fs/promises');
+const fsSync = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
 // Cloud platforms expose the service through 0.0.0.0 and inject PORT.
 const host = process.env.HOST || '0.0.0.0';
 const port = Number(process.env.PORT || 4173);
-const publicDir = path.join(__dirname, 'public');
+const publicCandidates = [
+  process.env.PUBLIC_DIR,
+  path.join(__dirname, 'public'),
+  path.join(process.cwd(), 'public'),
+  path.join(process.cwd(), 'teen-city-survey', 'public'),
+].filter(Boolean);
+const publicDir = publicCandidates.find((candidate) => fsSync.existsSync(path.join(candidate, 'index.html')))
+  || path.join(__dirname, 'public');
 // Set DATA_DIR to the mount point of a persistent disk in production.
 const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
 const dataFile = path.join(dataDir, 'responses.json');
@@ -134,13 +142,13 @@ async function saveSubmission(record) {
   return operation;
 }
 
-function serveFile(res, filePath, contentType) {
+function serveFile(res, filePath, contentType, method = 'GET') {
   fs.readFile(filePath)
     .then((content) => {
       setHeaders(res, contentType);
       res.setHeader('Cache-Control', 'no-store');
       res.writeHead(200);
-      res.end(content);
+      res.end(method === 'HEAD' ? undefined : content);
     })
     .catch(() => {
       sendJson(res, 404, { error: '页面不存在。' });
@@ -149,24 +157,25 @@ function serveFile(res, filePath, contentType) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${host}:${port}`);
+  const pathname = url.pathname.replace(/\/{2,}/g, '/').replace(/\/$/, '') || '/';
 
-  if (req.method === 'GET' && url.pathname === '/') {
-    return serveFile(res, path.join(publicDir, 'index.html'), 'text/html; charset=utf-8');
+  if ((req.method === 'GET' || req.method === 'HEAD') && (pathname === '/' || pathname === '/index.html')) {
+    return serveFile(res, path.join(publicDir, 'index.html'), 'text/html; charset=utf-8', req.method);
   }
-  if (req.method === 'GET' && url.pathname === '/admin') {
-    return serveFile(res, path.join(publicDir, 'admin.html'), 'text/html; charset=utf-8');
+  if ((req.method === 'GET' || req.method === 'HEAD') && (pathname === '/admin' || pathname === '/admin.html')) {
+    return serveFile(res, path.join(publicDir, 'admin.html'), 'text/html; charset=utf-8', req.method);
   }
-  if (req.method === 'GET' && url.pathname === '/styles.css') {
-    return serveFile(res, path.join(publicDir, 'styles.css'), 'text/css; charset=utf-8');
+  if ((req.method === 'GET' || req.method === 'HEAD') && pathname === '/styles.css') {
+    return serveFile(res, path.join(publicDir, 'styles.css'), 'text/css; charset=utf-8', req.method);
   }
-  if (req.method === 'GET' && url.pathname === '/survey.js') {
-    return serveFile(res, path.join(publicDir, 'survey.js'), 'text/javascript; charset=utf-8');
+  if ((req.method === 'GET' || req.method === 'HEAD') && pathname === '/survey.js') {
+    return serveFile(res, path.join(publicDir, 'survey.js'), 'text/javascript; charset=utf-8', req.method);
   }
-  if (req.method === 'GET' && url.pathname === '/admin.js') {
-    return serveFile(res, path.join(publicDir, 'admin.js'), 'text/javascript; charset=utf-8');
+  if ((req.method === 'GET' || req.method === 'HEAD') && pathname === '/admin.js') {
+    return serveFile(res, path.join(publicDir, 'admin.js'), 'text/javascript; charset=utf-8', req.method);
   }
 
-  if (req.method === 'POST' && url.pathname === '/api/submissions') {
+  if (req.method === 'POST' && pathname === '/api/submissions') {
     try {
       const body = await requestBody(req);
       const answers = body.answers;
@@ -192,11 +201,11 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  if (req.method === 'GET' && url.pathname === '/api/admin/session') {
+  if (req.method === 'GET' && pathname === '/api/admin/session') {
     return sendJson(res, 200, { authenticated: Boolean(sessionFor(req)) });
   }
 
-  if (req.method === 'POST' && url.pathname === '/api/admin/login') {
+  if (req.method === 'POST' && pathname === '/api/admin/login') {
     try {
       const body = await requestBody(req);
       const suppliedHash = crypto.scryptSync(String(body.password || ''), passwordSalt, 64);
@@ -213,7 +222,7 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  if (req.method === 'POST' && url.pathname === '/api/admin/logout') {
+  if (req.method === 'POST' && pathname === '/api/admin/logout') {
     const token = sessionFor(req);
     if (token) sessions.delete(token);
     return sendJson(res, 200, { authenticated: false }, {
@@ -221,7 +230,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (req.method === 'GET' && url.pathname === '/api/admin/submissions') {
+  if (req.method === 'GET' && pathname === '/api/admin/submissions') {
     if (!requireAdmin(req, res)) return;
     try {
       const records = await readSubmissions();
@@ -235,6 +244,13 @@ const server = http.createServer(async (req, res) => {
       console.error('History read failed:', error.message);
       return sendJson(res, 500, { error: '历史记录暂时无法读取。' });
     }
+  }
+
+  // Hosting dashboards and reverse proxies sometimes append a path or slash
+  // to the public URL. Keep ordinary browser navigation on the survey page;
+  // unknown API paths still return JSON 404s below.
+  if ((req.method === 'GET' || req.method === 'HEAD') && !pathname.startsWith('/api/')) {
+    return serveFile(res, path.join(publicDir, 'index.html'), 'text/html; charset=utf-8', req.method);
   }
 
   sendJson(res, 404, { error: '页面不存在。' });
@@ -251,5 +267,6 @@ server.on('error', (error) => {
 
 server.listen(port, host, () => {
   console.log(`Teen city survey is running at http://${host}:${port}`);
+  console.log(`Serving public files from ${publicDir}`);
   console.log(`Admin username: ${adminUsername}`);
 });

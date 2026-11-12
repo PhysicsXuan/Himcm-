@@ -34,6 +34,16 @@ https://teen-city-survey-xxxx.onrender.com/
 
 答题地址是这个地址本身，管理员地址是在末尾加 `/admin`。
 
+如果浏览器显示 `{"error":"页面不存在。"}`，先确认打开的是服务根地址，例如 `https://你的服务.onrender.com/`，而不是 GitHub 仓库地址或 `/api/...` 接口地址。更新代码后，在 Render 的 **Manual Deploy → Deploy latest commit** 重新部署，并用 Ctrl+F5 刷新浏览器。新版服务也支持 `/admin/`、`/index.html` 和带额外网页路径的访问。
+
+如果根地址仍然显示这个错误，请在 Render 的 Deploy Logs 中确认启动日志包含：
+
+```text
+Serving public files from .../public
+```
+
+如果日志没有这行，说明上传时没有把 `public/` 文件夹放在 `server.js` 同级目录，需调整仓库结构后重新部署。
+
 ## 3. 部署后检查
 
 打开：
