@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f7f5">
+    <title>青少年宜居城市问卷</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/survey.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="/" aria-label="青少年宜居城市问卷首页">
+        <span class="wordmark-mark" aria-hidden="true">城</span>
+        <span>城市与青少年</span>
+      </a>
+      <a class="admin-link" href="/admin">管理员入口 <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main class="page-shell">
+      <section class="intro-band" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">匿名问卷 <span>·</span> 14–18岁</p>
+          <h1 id="page-title">什么让一座城市适合青少年生活？</h1>
+          <p class="intro-copy">请按你心中的重要程度作答。我们想了解你的看法，不是在评价你现在生活的城市。</p>
+        </div>
+        <div class="intro-stat" aria-label="问卷共12题">
+          <strong>12</strong>
+          <span>道题目</span>
+        </div>
+      </section>
+
+      <section class="scale-band" aria-label="评分标准">
+        <span class="scale-title">重要性</span>
+        <span><b>1</b> 完全不重要</span>
+        <span><b>2</b> 不太重要</span>
+        <span><b>3</b> 一般</span>
+        <span><b>4</b> 比较重要</span>
+        <span><b>5</b> 非常重要</span>
+      </section>
+
+      <div class="progress-wrap" aria-live="polite">
+        <div class="progress-label"><span>答题进度</span><span id="progress-count">0 / 12</span></div>
+        <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+      </div>
+
+      <form id="survey-form" novalidate>
+        <div id="question-groups"></div>
+        <div class="form-footer">
+          <p id="form-message" class="form-message" role="status"></p>
+          <button id="submit-button" class="primary-button" type="submit" disabled>提交并查看权重</button>
+        </div>
+      </form>
+
+      <section id="result-panel" class="result-panel" hidden aria-live="polite">
+        <div class="result-heading">
+          <div>
+            <p class="eyebrow">你的偏好权重</p>
+            <h2>四个维度的权重分</h2>
+          </div>
+          <span class="sum-pill">合计 10 分</span>
+        </div>
+        <div id="result-rows" class="result-rows"></div>
+        <details class="formula-details">
+          <summary>题目分组与计算方式</summary>
+          <p>Q1–Q3：可实现机会（A）；Q4–Q6：健康与医疗（H）；Q7–Q9：家庭住房负担（F）；Q10–Q12：教育支持（E）。</p>
+          <p>每个维度先取三题平均分，再计算：该维度权重分 = 该维度平均分 ÷ 四个维度平均分之和 × 10。四个权重分合计为10。</p>
+        </details>
+        <button id="restart-button" class="secondary-button" type="button">重新填写</button>
+      </section>
+
+      <footer class="page-footer">
+        <span>青少年城市宜居性研究</span>
+        <span>不收集姓名或联系方式</span>
+      </footer>
+    </main>
+  </body>
+</html>

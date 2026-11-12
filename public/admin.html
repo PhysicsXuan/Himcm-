@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f7f5">
+    <title>管理员 · 青少年宜居城市问卷</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/admin.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="/">
+        <span class="wordmark-mark" aria-hidden="true">城</span>
+        <span>城市与青少年</span>
+      </a>
+      <a class="admin-link" href="/">返回问卷 <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main class="admin-shell">
+      <section id="login-panel" class="login-panel">
+        <div class="login-heading">
+          <p class="eyebrow">管理端</p>
+          <h1>管理员登录</h1>
+        </div>
+        <form id="login-form" class="login-form">
+          <label for="username">管理员账号</label>
+          <input id="username" name="username" type="text" autocomplete="username" required>
+          <label for="password">密码</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <p id="login-message" class="form-message" role="status"></p>
+          <button class="primary-button" type="submit">登录查看记录</button>
+        </form>
+      </section>
+
+      <section id="history-panel" class="history-panel" hidden>
+        <div class="history-heading">
+          <div>
+            <p class="eyebrow">答卷管理</p>
+            <h1>历史答卷</h1>
+            <p id="record-count" class="history-count"></p>
+          </div>
+          <button id="logout-button" class="secondary-button" type="button">退出登录</button>
+        </div>
+        <div class="table-legend">
+          <span>Q1–Q12：每题1–5分</span>
+          <span>A / H / F / E：权重分，合计10分</span>
+        </div>
+        <div class="table-frame">
+          <table id="history-table">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="history-message" class="form-message" role="status"></p>
+      </section>
+    </main>
+  </body>
+</html>
